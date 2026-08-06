@@ -96,6 +96,29 @@ Rollback just flips the symlink back to the previous slot, so it only ever reach
 
 Each deploy re-clones the whole branch, ~55MB of it video. That's fine at this site's change rate. If deploys ever get frequent, move `vids/` into `/var/www/portfolio/shared/` and symlink it into the slots — but note that breaks the "push is the only step" property, since new videos would then need a manual copy to the server.
 
+## DNS, TLS and Cloudflare
+
+The zone moved from Namecheap to **Cloudflare** on 2026-08-06. Apex and `www` are both **A records to `148.230.91.169`, proxied (orange cloud)**, so visitors hit Cloudflare's edge and Cloudflare fetches from this origin.
+
+- **Zone id** `d84bbeba0d21b2a0e68871c9a5fdf1bd`. The API token at `/etc/letsencrypt/cloudflare.ini` on the VPS is account-scoped and covers this zone — the same token that issues the pointgeek wildcard. No separate credential is needed.
+- **SSL mode is Full (strict)**, and `always_use_https` is on. Strict is only safe because the origin holds a real Let's Encrypt cert; if that cert ever lapses, Cloudflare will serve 526 rather than fall back. Renewal is automatic via `/etc/periodic/daily/certbot-renew`.
+- **The cert is issued by DNS-01, not HTTP-01** (`/opt/scripts/enable-portfolio-tls.sh`). With the records proxied, an HTTP-01 challenge would be validated through Cloudflare's edge and could fail for edge-side reasons that have nothing to do with this box. DNS-01 doesn't care where the A records point, so it also works before any cutover. Cert lineage is `simon-dev.com`, covering `www` + apex.
+- **Canonical host is `www`**; the apex 301s to it at the origin, matching the CNAME GitHub Pages used to serve.
+
+### Cloudflare rewrites the page
+
+Email Address Obfuscation is **on**, so the footer address is rewritten at the edge from `simonchasnovsky@gmail.com` into `[email protected]` plus a `/cdn-cgi/scripts/.../email-decode.min.js` decoder. It decodes correctly for anyone with JS, but the literal address is not in the served HTML — worth knowing before concluding the footer is broken. Toggle it in the Cloudflare dashboard (Scrape Shield) if the plain address is wanted.
+
+Consequence for debugging: **`www.simon-dev.com` and the origin do not return byte-identical HTML.** Compare behaviour with headers, not checksums — `server: cloudflare` + `cf-ray` means you reached the edge, `server: GitHub.com` means you hit a stale DNS answer pointing at the old GitHub Pages site. To test the origin directly:
+
+```bash
+curl -sI --resolve www.simon-dev.com:443:148.230.91.169 https://www.simon-dev.com/
+```
+
+### Caching
+
+Cloudflare caches assets at the edge (`cf-cache-status: HIT`) and passes HTML through (`DYNAMIC`, because the origin sends `Cache-Control: no-cache` on `.html`). Since asset filenames are not content-hashed, a deploy that changes `index.css` or `index.js` can be masked by the edge cache for up to the origin's `max-age` (1h for css/js, 30d for media). If a deploy looks like it didn't land, purge the Cloudflare cache before debugging the server.
+
 ## Running it locally
 
 There is no dev server, no build, no lint, no test. Serve the directory and open it:
