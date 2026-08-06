@@ -105,11 +105,13 @@ The zone moved from Namecheap to **Cloudflare** on 2026-08-06. Apex and `www` ar
 - **The cert is issued by DNS-01, not HTTP-01** (`/opt/scripts/enable-portfolio-tls.sh`). With the records proxied, an HTTP-01 challenge would be validated through Cloudflare's edge and could fail for edge-side reasons that have nothing to do with this box. DNS-01 doesn't care where the A records point, so it also works before any cutover. Cert lineage is `simon-dev.com`, covering `www` + apex.
 - **Canonical host is `www`**; the apex 301s to it at the origin, matching the CNAME GitHub Pages used to serve.
 
-### Cloudflare rewrites the page
+### Scrape Shield is off — leave it off
 
-Email Address Obfuscation is **on**, so the footer address is rewritten at the edge from `simonchasnovsky@gmail.com` into `[email protected]` plus a `/cdn-cgi/scripts/.../email-decode.min.js` decoder. It decodes correctly for anyone with JS, but the literal address is not in the served HTML — worth knowing before concluding the footer is broken. Toggle it in the Cloudflare dashboard (Scrape Shield) if the plain address is wanted.
+Email Address Obfuscation was on by default and rewrote the footer address at the edge from `simonchasnovsky@gmail.com` into `[email protected]` plus a `/cdn-cgi/scripts/.../email-decode.min.js` decoder. **It was turned off on 2026-08-06** (zone setting `email_obfuscation`): the footer is this site's primary call to action, and anyone reading the page without JS — including some scrapers and preview bots — got `[email protected]` instead of a contact address.
 
-Consequence for debugging: **`www.simon-dev.com` and the origin do not return byte-identical HTML.** Compare behaviour with headers, not checksums — `server: cloudflare` + `cf-ray` means you reached the edge, `server: GitHub.com` means you hit a stale DNS answer pointing at the old GitHub Pages site. To test the origin directly:
+The tradeoff is accepted deliberately: the plain address is now scrapeable by spam harvesters. If it ever needs reverting, it's a single zone setting, but re-enabling it silently changes what the served HTML contains.
+
+**Verifying by checksum is still a trap**, even though the edge no longer rewrites anything. The VPS copy and the old GitHub Pages copy are byte-identical by construction, so a matching md5 does not prove which one answered. Use headers — `server: cloudflare` + `cf-ray` means you reached the edge, `server: GitHub.com` means you hit a stale DNS answer pointing at the old GitHub Pages site. To test the origin directly:
 
 ```bash
 curl -sI --resolve www.simon-dev.com:443:148.230.91.169 https://www.simon-dev.com/
