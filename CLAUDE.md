@@ -8,6 +8,8 @@ Simón Chasnovsky's personal portfolio — a two-page static site in vanilla HTM
 
 Only two pages exist: `index.html` (landing) and `projects.html` (project gallery). Both share `css/index.css` and the same fixed side menu / popup markup.
 
+The one exception is `markiss-game/` — an unlisted (`noindex`), self-contained joke page, not linked from either page. See "markiss-game" below.
+
 ## Branches: `main` is source, `production` is the deployed artifact
 
 Three branches, and `main` shares **no history** with the other two — `production` was cut from `gh-pages`, which was never a descendant of `main`. They are maintained in parallel, with matching commit messages (`Update blog project`, `Add newtab and mpi projects`, …) applied by hand to each. `main` cannot be merged into `production`.
@@ -95,6 +97,17 @@ Rollback just flips the symlink back to the previous slot, so it only ever reach
 ### Redeploy cost
 
 Each deploy re-clones the whole branch, ~55MB of it video. That's fine at this site's change rate. If deploys ever get frequent, move `vids/` into `/var/www/portfolio/shared/` and symlink it into the slots — but note that breaks the "push is the only step" property, since new videos would then need a manual copy to the server.
+
+## markiss-game: the only dynamic bit
+
+`/markiss-game/` is a Rhythm Heaven Fever "Ringside" remake (canvas + Web Audio, one `index.html`, assets in `img/` and `audio/`). It ships unminified on **both** branches — same files, same commits — so the `main`/`production` minification rules above don't apply to it.
+
+- **Chart**: 118 BPM; `GRID0`/`*_BEATS` in `index.html` were measured off a perfect-run video. `GRID0` is anchored to the *decoded* `ringside.mp3` (11.7666s into the source) — if the MP3 is ever re-encoded, re-measure it by cross-correlation or every cue drifts.
+- **Scores**: `api/scores.php` (GET top 10 / POST 3-initial score) → Postgres DB `markiss`, role `markiss` with SELECT + INSERT on `scores` only. Schema: `api/migrations/2026-09-28-create-scores.sql`, run as the postgres superuser. Scores are client-computed, so they are forgeable; the API only enforces format, the 64,500 ceiling and 6 posts / 10 min per hashed IP. To remove a junk entry, commit a dated SQL file and run it as postgres (the app role cannot DELETE).
+- **Server bits outside the repo** (a deploy does not touch these):
+  - `/var/www/portfolio/shared/markiss-db.ini` (root:nginx 640) — DSN, user, IP-hash salt.
+  - `portfolio.conf`: `location = /markiss-game/api/scores.php` → the harmless-pleasure PHP-FPM socket (pool unchanged), and `location ^~ /markiss-game/api/ { return 404; }` so migrations are never served. Pre-change backup: `/root/portfolio.conf.bak-20260928-markiss`.
+- **Test hook**: `?debug` exposes `window.__ringside` (cues, heard time, state) for automated play-throughs.
 
 ## DNS, TLS and Cloudflare
 
