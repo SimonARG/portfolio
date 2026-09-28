@@ -2,215 +2,898 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex">
-    <title>Markiss Game</title>
+    <title>Ringside ft. Markiss</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik:ital,wght@0,500;0,800;1,900&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            min-height: 100vh;
-            background: #000;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            overflow: hidden;
-        }
-
-        .image-container {
-            position: fixed;
-            inset: 0;
             display: flex;
-            justify-content: center;
             align-items: center;
-            opacity: 0;
-            animation: fadeIn 3s ease-out forwards, zoomIn 15s ease-out forwards, zoomBounce 8s ease-in-out 15s infinite;
-            transform-origin: top center;
+            justify-content: center;
+            font-family: 'Rubik', system-ui, sans-serif;
         }
 
-        .image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        body.shaking .image-container {
-            animation: fadeIn 0s forwards, shake 0.25s linear infinite;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes zoomIn {
-            from { transform: scale(1); }
-            to { transform: scale(1.15); }
-        }
-
-        @keyframes zoomBounce {
-            0%, 100% { transform: scale(1.15); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes shake {
-            0%   { transform: scale(1.15) translate(0, 0); }
-            25%  { transform: scale(1.15) translate(-4px, 3px); }
-            50%  { transform: scale(1.15) translate(4px, -3px); }
-            75%  { transform: scale(1.15) translate(-3px, -4px); }
-            100% { transform: scale(1.15) translate(0, 0); }
-        }
-
-        .dialogue-box {
-            position: fixed;
-            bottom: 8%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: min(900px, calc(100% - 32px));
-            max-height: 40vh;
-            overflow-y: auto;
-            scrollbar-width: none;
-            background: rgba(0, 0, 0, 0.85);
-            border: 2px solid #444;
-            border-radius: 8px;
-            padding: 24px 40px;
-            opacity: 0;
-            animation: fadeInDialogue 1s ease-out 2s forwards;
-            z-index: 10;
-        }
-
-        .dialogue-box::-webkit-scrollbar {
-            display: none;
-        }
-
-        @keyframes fadeInDialogue {
-            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-
-        .speaker {
-            color: #f472b6;
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-        }
-
-        .dialogue-text {
-            color: #fff;
-            font-size: 24px;
-            font-style: italic;
-            line-height: 1.6;
-            word-break: break-word;
-        }
-
-        .choices {
-            position: fixed;
-            top: 42%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            gap: 32px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.6s ease-out;
-            z-index: 20;
-        }
-
-        .choices.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .choice {
-            width: 140px;
-            padding: 24px 0;
-            font-size: 48px;
-            font-weight: bold;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .choice-1 {
-            background: #2563eb;
-            box-shadow: 0 8px 32px rgba(37, 99, 235, 0.5);
-        }
-
-        .choice-2 {
-            background: #dc2626;
-            box-shadow: 0 8px 32px rgba(220, 38, 38, 0.5);
-        }
-
-        .choice:hover {
-            transform: translateY(-4px) scale(1.05);
-        }
-
-        @media (max-width: 600px) {
-            .dialogue-box { padding: 18px 20px; }
-            .dialogue-text { font-size: 19px; }
-            .choice { width: 110px; font-size: 40px; }
+        canvas {
+            display: block;
+            width: min(100vw, calc(100vh * 16 / 9));
+            height: min(100vh, calc(100vw * 9 / 16));
+            image-rendering: auto;
         }
     </style>
 </head>
 <body>
-    <div class="image-container">
-        <img src="img/markiss.jpg?v=2" alt="" onerror="this.remove()">
-    </div>
-
-    <div class="choices" id="choices">
-        <button class="choice choice-1" data-choice="1">1</button>
-        <button class="choice choice-2" data-choice="2">2</button>
-    </div>
-
-    <div class="dialogue-box" id="box">
-        <p class="speaker">???</p>
-        <p class="dialogue-text" id="dialogue"></p>
-    </div>
+    <canvas id="stage" width="1280" height="720"></canvas>
 
     <script>
-        const box = document.getElementById('box');
-        const dialogue = document.getElementById('dialogue');
-        const choices = document.getElementById('choices');
+    (() => {
+        'use strict';
 
-        function type(text, speed) {
-            return new Promise(resolve => {
-                let i = 0;
-                (function step() {
-                    if (i >= text.length) return resolve();
-                    dialogue.textContent += text[i++];
-                    if (dialogue.textContent.length > 4000) dialogue.textContent = dialogue.textContent.slice(-2000);
-                    box.scrollTop = box.scrollHeight;
-                    setTimeout(step, speed);
-                })();
-            });
+        // ---------------------------------------------------------------
+        // Chart. Beat grid measured off the Rhythm Heaven Fever "Ringside"
+        // perfect run: 118 BPM, beat 0 at 0.028s of the source video; the
+        // decoded audio clip lines up with 11.7666s of that video (measured by
+        // cross-correlating the shipped MP3 against the source).
+        // ---------------------------------------------------------------
+        const SPB = 60 / 118;
+        const GRID0 = 0.028 - 11.7666;
+        const ONSET = -0.02;                        // the replies land just ahead of the grid
+        const beatToTime = b => GRID0 + b * SPB;
+        const timeToBeat = t => (t - GRID0) / SPB;
+
+        const TRUE_BEATS = [49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 165, 169, 173, 181, 185];
+        const GUY_BEATS  = [77, 85, 109, 125, 133, 149, 177, 189];
+        const POSE_BEATS = [60, 68, 92, 100, 116, 128, 137, 144, 152, 157, 192, 195, 198, 201];
+        const NEWS = { 137: 'news1', 157: 'news2', 201: 'news3' };
+
+        const LINES = {
+            true: [[-3, 'Wubba'], [-2.5, 'dubba'], [-2, 'dubba'], [-1.5, 'dub,'], [-1.25, 'is that'], [-1, 'true?']],
+            guy:  [[-3, 'Woah,'], [-2.5, 'you'], [-2.25, 'go,'], [-1.5, 'big'], [-1, 'guy!']],
+            pose: [[-1.75, 'Pose'], [-1.5, 'for the'], [-1, 'fans!']],
+        };
+        const REPLY = { true: '¡EEH!', guy: '¡EEH!', pose: '¡YEAH!' };
+
+        const WIN_ACE = 0.045, WIN_HIT = 0.10, WIN_BARELY = 0.165;
+
+        // Arcade points: per answer, plus a combo bonus capped at x20.
+        // Full perfect = 37 x 1000 + 27,500 bonus = 64,500 (the API's ceiling).
+        const PTS = { ace: 1000, hit: 700, barely: 300 };
+        const COMBO_STEP = 50, COMBO_CAP = 20, WHIFF_COST = 100;
+        const API = 'api/scores.php';
+        const ARCADE = '"Press Start 2P", monospace';
+        const SONG_END_BEAT = 211;
+
+        // Where the wrestler's head sits in each 1280x720 cel (for bursts and reactions).
+        // [x, y, face height, rotation°] — same numbers the face was composited with.
+        const HEAD = {
+            idle: [853, 178, 300, 0], idle2: [853, 186, 300, 0], micout: [853, 172, 300, 0], answer: [853, 184, 300, 0],
+            stretch: [850, 170, 300, -8], flex: [853, 160, 300, 4], flexhold: [853, 160, 300, 4],
+            wide: [660, 90, 150, 0], stagepose: [660, 100, 125, 0], sunburst: [624, 80, 150, 0],
+        };
+
+        // ---------------------------------------------------------------
+        // Canvas + assets
+        // ---------------------------------------------------------------
+        const cv = document.getElementById('stage');
+        const g = cv.getContext('2d');
+        const W = 1280, H = 720;
+
+        const IMG_NAMES = ['idle', 'idle2', 'micout', 'answer', 'stretch', 'flex', 'flexhold', 'wide',
+            'stagepose', 'sunburst', 'news1', 'news2', 'news3', 'title', 'arena',
+            'face_closed', 'face_open', 'face_shout'];
+        const img = {};
+        let loaded = 0;
+        const TOTAL = IMG_NAMES.length + 1;
+
+        IMG_NAMES.forEach(n => {
+            const i = new Image();
+            i.onload = () => loaded++;
+            i.onerror = () => loaded++;
+            i.src = `img/${n}.${n.startsWith('face_') ? 'png' : 'jpg'}`;
+            img[n] = i;
+        });
+
+        let songBytes = null;
+        fetch('audio/ringside.mp3')
+            .then(r => r.arrayBuffer())
+            .then(b => { songBytes = b; loaded++; })
+            .catch(() => { loaded++; });
+
+        // ---------------------------------------------------------------
+        // Audio
+        // ---------------------------------------------------------------
+        let ctx = null, songBuf = null, musicGain = null, sfxGain = null, src = null;
+        let t0 = 0;                                  // context time the song started at
+
+        async function ensureAudio() {
+            if (!ctx) {
+                ctx = new (window.AudioContext || window.webkitAudioContext)();
+                musicGain = ctx.createGain();
+                sfxGain = ctx.createGain();
+                sfxGain.gain.value = 0.5;
+                musicGain.connect(ctx.destination);
+                sfxGain.connect(ctx.destination);
+            }
+            if (ctx.state === 'suspended') await ctx.resume();
+            if (!songBuf && songBytes) songBuf = await ctx.decodeAudioData(songBytes.slice(0));
         }
 
-        async function forever() {
-            let speed = 60;
-            await type('Puto', speed);
-            for (;;) {
-                await type(' puto', speed);
-                speed = Math.max(12, speed - 2);
+        function outLatency() {
+            return ctx ? (ctx.outputLatency || ctx.baseLatency || 0) : 0;
+        }
+
+        // Song position the player is *hearing* at performance.now() == perf.
+        function heardTime(perf) {
+            if (!ctx) return 0;
+            if (ctx.getOutputTimestamp) {
+                const ts = ctx.getOutputTimestamp();
+                if (ts.contextTime > 0 && ts.performanceTime > 0) {
+                    return ts.contextTime + (perf - ts.performanceTime) / 1000 - t0;
+                }
+            }
+            return ctx.currentTime - outLatency() - t0;
+        }
+
+        function blip(type, f0, f1, dur, vol = 1, delay = 0) {
+            if (!ctx) return;
+            const t = ctx.currentTime + delay;
+            const o = ctx.createOscillator(), a = ctx.createGain();
+            o.type = type;
+            o.frequency.setValueAtTime(f0, t);
+            o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+            a.gain.setValueAtTime(0.0001, t);
+            a.gain.exponentialRampToValueAtTime(vol, t + 0.008);
+            a.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+            o.connect(a).connect(sfxGain);
+            o.start(t);
+            o.stop(t + dur + 0.02);
+        }
+
+        const sfx = {
+            miss:   () => { blip('square', 180, 70, 0.22, 0.35); blip('sine', 90, 45, 0.3, 0.6); },
+            whiff:  () => blip('triangle', 520, 300, 0.09, 0.35),
+            barely: () => blip('sawtooth', 240, 160, 0.12, 0.25),
+            tick:   () => blip('square', 1500, 1500, 0.03, 0.2),
+            start:  () => { blip('square', 660, 660, 0.08, 0.3); blip('square', 990, 990, 0.14, 0.3, 0.09); },
+        };
+
+        // ---------------------------------------------------------------
+        // Game state
+        // ---------------------------------------------------------------
+        let offsetMs = 0;
+        try { offsetMs = parseInt(localStorage.getItem('markiss-ringside-offset') || '0', 10) || 0; } catch (e) {}
+
+        let state = 'loading';        // loading | title | play | results
+        let cues = [];
+        let whiffs = 0;
+        let whiffFlash = -1;          // song time of last stray press
+        let points = 0, combo = 0, maxCombo = 0;
+        let results = null;
+        let resultsAt = 0;
+        let fx = [];                  // transient effects
+
+        function buildCues() {
+            const c = [];
+            TRUE_BEATS.forEach(b => c.push({ b, type: 'true' }));
+            GUY_BEATS.forEach(b => c.push({ b, type: 'guy' }));
+            POSE_BEATS.forEach(b => c.push({ b, type: 'pose', news: NEWS[b] || null }));
+            c.sort((x, y) => x.b - y.b);
+            c.forEach(q => { q.t = beatToTime(q.b) + ONSET; q.res = null; q.duck = false; });
+            return c;
+        }
+
+        async function startGame() {
+            await ensureAudio();
+            if (!songBuf) return;
+            cues = buildCues();
+            whiffs = 0;
+            whiffFlash = -1;
+            points = combo = maxCombo = 0;
+            fx = [];
+            results = null;
+            musicGain.gain.cancelScheduledValues(0);
+            musicGain.gain.setValueAtTime(1, ctx.currentTime);
+            src = ctx.createBufferSource();
+            src.buffer = songBuf;
+            src.connect(musicGain);
+            t0 = ctx.currentTime + 0.25;
+            src.start(t0);
+            src.onended = () => { if (state === 'play') finish(); };
+            state = 'play';
+        }
+
+        function quitToTitle() {
+            if (src) { try { src.onended = null; src.stop(); } catch (e) {} src = null; }
+            state = 'title';
+        }
+
+        function judge(perf) {
+            const now = heardTime(perf) - offsetMs / 1000;
+            let best = null, bestAbs = Infinity;
+            for (const q of cues) {
+                if (q.res) continue;
+                const d = Math.abs(now - q.t);
+                if (d < bestAbs) { bestAbs = d; best = q; }
+            }
+            if (best && bestAbs <= WIN_BARELY) {
+                const delta = now - best.t;
+                best.delta = delta;
+                best.res = bestAbs <= WIN_ACE ? 'ace' : bestAbs <= WIN_HIT ? 'hit' : 'barely';
+                best.at = now;
+                // Undo the miss-duck if it already kicked in.
+                const tNow = ctx.currentTime;
+                if (musicGain.gain.cancelAndHoldAtTime) musicGain.gain.cancelAndHoldAtTime(tNow);
+                else musicGain.gain.cancelScheduledValues(tNow);
+                musicGain.gain.setTargetAtTime(1, tNow, 0.006);
+                if (best.res === 'barely') sfx.barely();
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                points += PTS[best.res] + COMBO_STEP * Math.min(combo, COMBO_CAP);
+                fx.push({ kind: 'burst', type: best.type, res: best.res, at: now });
+            } else {
+                whiffs++;
+                points = Math.max(0, points - WHIFF_COST);
+                whiffFlash = now;
+                sfx.whiff();
             }
         }
 
-        setTimeout(async () => {
-            await type('¿1 o 2?', 70);
-            choices.classList.add('visible');
-        }, 3000);
+        function update() {
+            if (state !== 'play') return;
+            const now = heardTime(performance.now()) - offsetMs / 1000;
+            for (const q of cues) {
+                // Mute the baked-in reply if the player hasn't answered by just after the beat.
+                if (!q.res && !q.duck && ctx.currentTime > t0 + q.t - 0.3) {
+                    q.duck = true;
+                    const d = t0 + q.t + 0.06;
+                    const gg = musicGain.gain;
+                    gg.setValueAtTime(1, d);
+                    gg.linearRampToValueAtTime(0.07, d + 0.015);
+                    gg.setValueAtTime(0.07, t0 + q.t + 0.40);
+                    gg.linearRampToValueAtTime(1, t0 + q.t + 0.48);
+                }
+                if (!q.res && now > q.t + WIN_BARELY) {
+                    q.res = 'miss';
+                    q.at = now;
+                    combo = 0;
+                    sfx.miss();
+                    fx.push({ kind: 'miss', type: q.type, at: now });
+                }
+            }
+            if (timeToBeat(now) > SONG_END_BEAT + 0.5) finish();
+        }
 
-        choices.addEventListener('click', e => {
-            if (!e.target.dataset.choice) return;
-            choices.classList.remove('visible');
-            dialogue.textContent = '';
-            document.body.classList.add('shaking');
-            forever();
+        function finish() {
+            if (state !== 'play') return;
+            const pts = { ace: 100, hit: 92, barely: 55, miss: 0 };
+            const byType = { true: [0, 0], guy: [0, 0], pose: [0, 0] };
+            let sum = 0, aces = 0, misses = 0, barelies = 0;
+            for (const q of cues) {
+                sum += pts[q.res || 'miss'];
+                if (q.res === 'ace') aces++;
+                if (q.res === 'miss' || !q.res) misses++;
+                if (q.res === 'barely') barelies++;
+                byType[q.type][1]++;
+                if (q.res && q.res !== 'miss') byType[q.type][0]++;
+            }
+            let score = Math.round(sum / cues.length - Math.min(15, whiffs * 1.5));
+            score = Math.max(0, Math.min(100, score));
+            const perfect = misses === 0 && barelies === 0 && whiffs === 0;
+            const rank = perfect ? 'perfect' : score >= 80 ? 'superb' : score >= 60 ? 'ok' : 'try';
+            const accuracy = Math.round((cues.length - misses) / cues.length * 100);
+            results = { score, rank, aces, misses, barelies, whiffs, byType, total: cues.length, points, maxCombo, accuracy };
+            loadBoard();
+            resultsAt = performance.now();
+            state = 'results';
+            if (src) { try { src.onended = null; src.stop(ctx.currentTime + 0.6); } catch (e) {} }
+            musicGain.gain.setTargetAtTime(0, ctx.currentTime, 0.2);
+        }
+
+        // ---------------------------------------------------------------
+        // Choreography: which cel is on screen at a given beat
+        // ---------------------------------------------------------------
+        function sceneAt(beat, now) {
+            // Intro: arena exterior, then the camera drops in on the stage.
+            if (beat < 37) return { cel: 'arena' };
+            if (beat < 39) return { cel: 'wide', zoomFrom: 37, zoomDir: -1 };
+
+            let scene = { cel: 'idle' };
+            let lastStart = -Infinity;
+            let cutoff = Infinity;
+            const set = (start, s) => {
+                if (start <= beat && start >= lastStart && start < cutoff) { lastStart = start; scene = s; }
+            };
+
+            for (let i = 0; i < cues.length; i++) {
+                const q = cues[i];
+                const h = q.b;
+                if (h - 6 > beat) break;
+                const next = cues[i + 1];
+                cutoff = next ? next.b + LINES[next.type][0][0] : Infinity;
+                const hit = q.res && q.res !== 'miss';
+                const answered = hit && q.at !== undefined && now >= q.at - 0.001;
+
+                if (q.type === 'true' || q.type === 'guy') {
+                    for (let k = -3; k < -1; k += 0.5) set(h + k, { cel: (k * 2) % 2 === 0 ? 'idle' : 'idle2', talk: q });
+                    set(h - 1, { cel: 'micout', talk: q });
+                    if (q.type === 'guy') set(h - 0.5, { cel: 'stretch', talk: q });
+                    if (answered) {
+                        set(h + (q.delta < 0 ? q.delta / SPB : 0), { cel: q.type === 'true' ? 'answer' : 'flex', reply: q });
+                        if (q.type === 'guy') set(h + 1, { cel: 'flexhold' });
+                        set(h + (q.type === 'guy' ? 2.5 : 1), { cel: 'idle' });
+                    } else if (beat >= h) {
+                        set(h, { cel: 'micout' });
+                        set(h + 1.5, { cel: 'idle' });
+                    }
+                } else {
+                    set(h - 1.75, { cel: 'wide', zoomFrom: h - 1.75, zoomDir: 1, talk: q });
+                    if (answered) {
+                        set(h + (q.delta < 0 ? q.delta / SPB : 0), { cel: 'stagepose', flashFrom: h, reply: q });
+                        if (q.news) {
+                            set(h + 1, { cel: q.news, news: true });
+                            set(h + 5, { cel: 'idle' });
+                        } else {
+                            set(h + 1, { cel: 'sunburst' });
+                            set(h + 2.5, { cel: 'idle' });
+                        }
+                    } else if (beat >= h) {
+                        set(h, { cel: 'wide' });
+                        set(h + 2.5, { cel: 'idle' });
+                    }
+                }
+            }
+            if (beat >= 206) return { cel: 'arena', outro: true };
+            return scene;
+        }
+
+        // ---------------------------------------------------------------
+        // Drawing helpers
+        // ---------------------------------------------------------------
+        function text(str, x, y, size, fill, opts = {}) {
+            g.save();
+            g.font = opts.font
+                ? `${size}px ${opts.font}`
+                : `${opts.italic ? 'italic ' : ''}${opts.weight || 800} ${size}px Rubik, system-ui, sans-serif`;
+            g.textAlign = opts.align || 'center';
+            g.textBaseline = 'middle';
+            if (opts.stroke) {
+                g.lineJoin = 'round';
+                g.lineWidth = opts.strokeWidth || size / 5;
+                g.strokeStyle = opts.stroke;
+                g.strokeText(str, x, y);
+            }
+            g.fillStyle = fill;
+            g.fillText(str, x, y);
+            g.restore();
+        }
+
+        function roundRect(x, y, w, h, r) {
+            g.beginPath();
+            g.moveTo(x + r, y);
+            g.arcTo(x + w, y, x + w, y + h, r);
+            g.arcTo(x + w, y + h, x, y + h, r);
+            g.arcTo(x, y + h, x, y, r);
+            g.arcTo(x, y, x + w, y, r);
+            g.closePath();
+        }
+
+        function bubble(words, x, y, tailX, tailY) {
+            const str = words.join(' ');
+            g.save();
+            g.font = '800 34px Rubik, system-ui, sans-serif';
+            const w = Math.max(120, g.measureText(str).width + 48), h = 66;
+            const bx = Math.min(W - w - 16, Math.max(16, x - w / 2));
+            g.fillStyle = '#fff';
+            g.strokeStyle = '#1b1024';
+            g.lineWidth = 5;
+            roundRect(bx, y, w, h, 30);
+            g.fill();
+            g.stroke();
+            g.beginPath();
+            const cx = Math.min(bx + w - 40, Math.max(bx + 40, tailX));
+            g.moveTo(cx - 16, y + h - 3);
+            g.lineTo(tailX, tailY);
+            g.lineTo(cx + 16, y + h - 3);
+            g.fill();
+            g.stroke();
+            g.fillRect(cx - 14, y + h - 8, 28, 6);
+            g.restore();
+            text(str, bx + w / 2, y + h / 2 + 2, 34, '#1b1024');
+        }
+
+        function starburst(x, y, r, points, alpha, rot = 0) {
+            g.save();
+            g.globalAlpha = alpha;
+            g.fillStyle = '#fff';
+            g.beginPath();
+            for (let i = 0; i < points * 2; i++) {
+                const a = rot + (i / (points * 2)) * Math.PI * 2;
+                const rr = i % 2 ? r * 0.45 : r;
+                g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+            }
+            g.closePath();
+            g.fill();
+            g.restore();
+        }
+
+        function drawCel(name, scale = 1, ox = W / 2, oy = H * 0.3) {
+            const im = img[name];
+            if (!im || !im.complete) return;
+            g.save();
+            if (scale !== 1) {
+                g.translate(ox, oy);
+                g.scale(scale, scale);
+                g.translate(-ox, -oy);
+            }
+            g.drawImage(im, 0, 0, W, H);
+            g.restore();
+        }
+
+        // ---------------------------------------------------------------
+        // Screens
+        // ---------------------------------------------------------------
+        function drawLoading() {
+            g.fillStyle = '#000';
+            g.fillRect(0, 0, W, H);
+            const p = loaded / TOTAL;
+            text('Cargando…', W / 2, H / 2 - 30, 40, '#fff');
+            g.fillStyle = '#333';
+            g.fillRect(W / 2 - 200, H / 2 + 10, 400, 12);
+            g.fillStyle = '#e8112d';
+            g.fillRect(W / 2 - 200, H / 2 + 10, 400 * p, 12);
+        }
+
+        function drawTitle(ms) {
+            g.fillStyle = '#000';
+            g.fillRect(0, 0, W, H);
+            g.drawImage(img.title, 0, 100, W, 520);
+            // Markiss on the silhouette's head, bobbing to 118 BPM.
+            const bob = Math.abs(Math.sin(ms / 1000 * Math.PI * 118 / 60)) * 8;
+            const f = img.face_closed;
+            if (f.complete) {
+                const fh = 150, fw = fh * f.width / f.height;
+                g.drawImage(f, 598 - fw / 2, 72 - bob, fw, fh);
+            }
+            text('ft. MARKISS', 1000, 470, 54, '#fff', { italic: true, weight: 900, stroke: '#1b1024', strokeWidth: 12 });
+
+            g.fillStyle = 'rgba(0,0,0,0.55)';
+            g.fillRect(0, 0, W, 100);
+            g.fillRect(0, 620, W, 100);
+            text('Apretá ESPACIO (o tocá la pantalla) justo cuando Markiss tiene que contestar:', W / 2, 36, 24, '#fff', { weight: 500 });
+            text('“…is that true?”   ·   “…you go, big guy!”   ·   “Pose for the fans!”', W / 2, 70, 24, '#ffd84a', { weight: 800 });
+
+            if (Math.floor(ms / 500) % 2 === 0) {
+                text('▶  ESPACIO PARA EMPEZAR', W / 2, 660, 36, '#fff', { weight: 900, stroke: '#e8112d', strokeWidth: 8 });
+            }
+            if (board && board.length) {
+                text(`HI-SCORE ${board[0].initials} ${String(board[0].points).padStart(6, '0')}`, 24, 700, 16, '#ffd84a', { align: 'left', font: ARCADE });
+            }
+            text(`Latencia: ${offsetMs > 0 ? '+' : ''}${offsetMs} ms  (← →)`, W - 24, 700, 18, 'rgba(255,255,255,0.6)', { align: 'right', weight: 500 });
+        }
+
+        function drawPlay() {
+            const now = heardTime(performance.now()) - offsetMs / 1000;
+            const beat = timeToBeat(now);
+            const sc = sceneAt(beat, now);
+
+            g.fillStyle = '#000';
+            g.fillRect(0, 0, W, H);
+
+            // Camera: zoom out to the stage for poses, drop in on the intro.
+            let scale = 1;
+            if (sc.zoomFrom !== undefined) {
+                const k = Math.min(1, (beat - sc.zoomFrom) / 0.6);
+                const e = 1 - Math.pow(1 - k, 3);
+                scale = sc.zoomDir > 0 ? 1.45 - 0.45 * e : 1 + 0.35 * e;
+            }
+            // Punch-in on the beat of a good answer.
+            if (sc.reply) {
+                const since = beat - (sc.reply.b + Math.min(0, sc.reply.delta / SPB));
+                if (since >= 0 && since < 0.5) scale *= 1 + 0.035 * (1 - since / 0.5);
+            }
+            const head = HEAD[sc.cel] || [W / 2, H * 0.3];
+            if (sc.news) {
+                drawCel(sc.cel, 1 + 0.015 * Math.sin(beat * Math.PI), W / 2, H / 2);
+            } else {
+                drawCel(sc.cel, scale, head[0], head[1]);
+            }
+
+            // Outro caption.
+            if (sc.outro) {
+                text("You're watching", 1090, 610, 34, '#fff', { weight: 500, stroke: 'rgba(0,0,0,0.6)', strokeWidth: 6 });
+                text('MRKS-TV', 1090, 652, 38, '#fff', { weight: 800, stroke: 'rgba(0,0,0,0.6)', strokeWidth: 6 });
+            }
+
+            // Camera flashes when the pose lands.
+            if (sc.cel === 'stagepose' && sc.reply) {
+                const since = beat - sc.reply.b;
+                const a = Math.max(0, 1 - Math.max(0, since) * 3.2) * 0.85;
+                if (a > 0) { g.fillStyle = `rgba(255,255,255,${a})`; g.fillRect(0, 0, W, H); }
+                for (let i = 0; i < 3; i++) {
+                    const s = since - i * 0.18;
+                    if (s > 0 && s < 0.3) starburst([210, 1080, 420][i], [600, 560, 650][i], 90 * (1 - s / 0.3) + 20, 10, 0.9);
+                }
+            }
+
+            // Reporter's speech bubble.
+            const talkQ = cues.find(q => beat >= q.b + LINES[q.type][0][0] && beat < q.b + 0.25);
+            if (talkQ && !sc.news) {
+                const words = LINES[talkQ.type].filter(([k]) => beat >= talkQ.b + k).map(([, w]) => w);
+                if (talkQ.type === 'pose') bubble(words, 360, 140, 345, 262);
+                else bubble(words, 330, 300, 360, 445);
+            }
+
+            // Hit burst + reply shout.
+            for (const f of fx) {
+                const age = now - f.at;
+                if (f.kind === 'burst' && age < 0.55 && !sc.news) {
+                    const pos = HEAD[sc.cel] || head;
+                    const k = age / 0.55;
+                    if (f.type !== 'pose') starburst(pos[0] + 110, pos[1] - 40, 40 + 60 * k, 8, (1 - k) * 0.95, k);
+                    const label = REPLY[f.type];
+                    const col = f.res === 'barely' ? '#ffb347' : '#fff';
+                    text(label, pos[0] + (f.type === 'pose' ? 170 : 230), pos[1] - 60 - 30 * k, f.res === 'barely' ? 40 : 58, col,
+                        { italic: true, weight: 900, stroke: '#1b1024', strokeWidth: 10 });
+                }
+                if (f.kind === 'miss' && age < 0.8) {
+                    const pos = HEAD[sc.cel] || head;
+                    const k = age / 0.8;
+                    const fh = pos[2] || 300;
+                    text('?', pos[0] + fh * 0.42, Math.max(60, pos[1] - fh * 0.2) - 20 * k, fh > 200 ? 90 : 64, '#fff', { weight: 900, stroke: '#1b1024', strokeWidth: 12 });
+                    g.fillStyle = `rgba(20,10,40,${0.25 * (1 - k)})`;
+                    g.fillRect(0, 0, W, H);
+                }
+            }
+            fx = fx.filter(f => now - f.at < 1);
+
+            // Stray press: Markiss blurts something out of time.
+            if (whiffFlash >= 0 && now - whiffFlash < 0.18 && HEAD[sc.cel] && scale === 1) {
+                const f = img.face_open;
+                if (f.complete) {
+                    const [hx, hy, fh, rot] = HEAD[sc.cel];
+                    const fw = fh * f.width / f.height;
+                    g.save();
+                    g.translate(hx, hy);
+                    g.rotate(-rot * Math.PI / 180);
+                    g.drawImage(f, -fw / 2, -fh / 2, fw, fh);
+                    g.restore();
+                }
+            }
+
+            // Fade in from black at the start.
+            if (now < 0.6) {
+                g.fillStyle = `rgba(0,0,0,${1 - Math.max(0, now) / 0.6})`;
+                g.fillRect(0, 0, W, H);
+            }
+            // Fade out at the very end.
+            if (beat > SONG_END_BEAT - 2) {
+                g.fillStyle = `rgba(0,0,0,${Math.min(1, (beat - (SONG_END_BEAT - 2)) / 2)})`;
+                g.fillRect(0, 0, W, H);
+            }
+
+            // Arcade HUD.
+            text(String(points).padStart(6, '0'), W - 22, 34, 26, '#fff', { align: 'right', font: ARCADE, stroke: '#1b1024', strokeWidth: 8 });
+            if (combo >= 2) text(`COMBO x${combo}`, W - 22, 72, 16, '#ffd84a', { align: 'right', font: ARCADE, stroke: '#1b1024', strokeWidth: 6 });
+
+            text('Esc: salir', W - 18, H - 18, 16, 'rgba(255,255,255,0.5)', { align: 'right', weight: 500, stroke: 'rgba(0,0,0,0.4)', strokeWidth: 4 });
+        }
+
+        const RANKS = {
+            try:     { label: 'Intentá de nuevo', color: '#8fa3b8' },
+            ok:      { label: 'OK', color: '#3aa0ff' },
+            superb:  { label: '¡Genial!', color: '#ff3b3b' },
+            perfect: { label: '¡PERFECTO!', color: '#ffc21a' },
+        };
+
+        function comments(r) {
+            const out = [];
+            const [tH, tN] = r.byType.true, [gH, gN] = r.byType.guy, [pH, pN] = r.byType.pose;
+            out.push(tH === tN ? '¡Respondiste todas las preguntas!' : tH >= tN * 0.7 ? 'Contestaste casi todo… casi.' : 'Te costó contestar las preguntas.');
+            out.push(gH === gN ? 'Esos músculos, impecables.' : gH >= gN * 0.7 ? 'Flexeaste bastante bien.' : 'Te olvidaste de flexear, big guy.');
+            out.push(pH === pN ? 'Las fotos salieron hermosas.' : pH >= pN * 0.7 ? 'Algunas fotos salieron movidas.' : 'No posaste para los fans.');
+            if (r.whiffs > 4) out.push('Hablaste de más: ' + r.whiffs + ' veces fuera de tiempo.');
+            return out;
+        }
+
+        function drawResults(ms) {
+            const t = (ms - resultsAt) / 1000;
+            const r = results;
+            g.fillStyle = '#12091c';
+            g.fillRect(0, 0, W, H);
+            g.save();
+            g.globalAlpha = 0.12;
+            g.drawImage(img.sunburst, 0, 0, W, H);
+            g.restore();
+
+            text('Ringside ft. Markiss', 60, 70, 44, '#fff', { align: 'left', italic: true, weight: 900 });
+            g.fillStyle = '#e8112d';
+            g.fillRect(60, 104, 420, 6);
+
+            const lines = comments(r);
+            lines.forEach((l, i) => {
+                if (t > 0.6 + i * 0.7) text(l, 60, 180 + i * 62, 34, '#fff', { align: 'left', weight: 500 });
+            });
+
+            const statsAt = 0.6 + lines.length * 0.7;
+            if (t > statsAt) {
+                const hits = r.total - r.misses;
+                text(`${hits}/${r.total} a tiempo  ·  ${r.aces} exactas  ·  combo máx. ${r.maxCombo}`, 60, 180 + lines.length * 62 + 20, 24, '#bda9d6', { align: 'left', weight: 500 });
+                text(`PUNTOS ${String(r.points).padStart(6, '0')}`, 60, 180 + lines.length * 62 + 72, 28, '#ffd84a', { align: 'left', font: ARCADE });
+            }
+
+            const rankAt = statsAt + 0.8;
+            if (t > rankAt) {
+                const k = Math.min(1, (t - rankAt) / 0.25);
+                const rk = RANKS[r.rank];
+                g.save();
+                g.translate(930, 560);
+                g.rotate(-0.12);
+                g.scale(2.2 - 1.2 * k, 2.2 - 1.2 * k);
+                g.globalAlpha = k;
+                g.strokeStyle = rk.color;
+                g.lineWidth = 8;
+                roundRect(-230, -62, 460, 124, 18);
+                g.stroke();
+                text(rk.label, 0, 4, rk.label.length > 10 ? 50 : 72, rk.color, { weight: 900, italic: true });
+                g.restore();
+
+                const f = r.rank === 'try' ? img.face_closed : img.face_shout;
+                if (f.complete) {
+                    const fh = 250, fw = fh * f.width / f.height;
+                    g.save();
+                    g.globalAlpha = k;
+                    g.drawImage(f, 1150 - fw / 2, 250 - fh / 2 + Math.sin(t * 6) * (r.rank === 'try' ? 0 : 6), fw, fh);
+                    g.restore();
+                }
+                if (t > rankAt + 1.2 && Math.floor(ms / 500) % 2 === 0) {
+                    text(qualifies() ? 'ESPACIO: ¡guardá tu récord!' : 'ESPACIO: ver récords', 60, 670, 26, '#fff', { align: 'left', weight: 800 });
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // High scores (arcade initials, stored server-side)
+        // ---------------------------------------------------------------
+        const CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let board = null;             // null = not loaded / offline
+        let boardMsg = '';
+        let boardAt = 0, highlightId = null;
+        let entry = null;             // { chars: [i, i, i], slot, sending }
+
+        function loadBoard() {
+            fetch(API, { cache: 'no-store' })
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .then(d => { board = d.scores || []; boardMsg = ''; })
+                .catch(() => { board = null; boardMsg = 'Tabla de récords fuera de línea'; });
+        }
+
+        function resultsReadyMs() {
+            return (0.6 + comments(results).length * 0.7 + 0.8 + 1.2) * 1000;
+        }
+
+        function qualifies() {
+            if (!results || !board || results.points <= 0) return false;
+            return board.length < 10 || results.points > board[board.length - 1].points;
+        }
+
+        function openEntry() {
+            let last = 'AAA';
+            try { last = localStorage.getItem('markiss-ringside-initials') || 'AAA'; } catch (e) {}
+            entry = { chars: [...last.slice(0, 3)].map(c => Math.max(0, CHARSET.indexOf(c))), slot: 0, sending: false, error: '' };
+            state = 'entry';
+        }
+
+        function entryMove(d) { if (!entry.sending) entry.slot = Math.max(0, Math.min(2, entry.slot + d)); }
+        function entrySpin(d) {
+            if (entry.sending) return;
+            entry.chars[entry.slot] = (entry.chars[entry.slot] + d + CHARSET.length) % CHARSET.length;
+            sfx.tick();
+        }
+        function entryConfirm() {
+            if (entry.sending) return;
+            if (entry.slot < 2) { entry.slot++; sfx.tick(); return; }
+            submitScore();
+        }
+
+        function entryKey(e) {
+            const k = e.key;
+            if (k === ' ' || k === 'Enter') { e.preventDefault(); if (!e.repeat) entryConfirm(); }
+            else if (k === 'ArrowUp') { e.preventDefault(); entrySpin(1); }
+            else if (k === 'ArrowDown') { e.preventDefault(); entrySpin(-1); }
+            else if (k === 'ArrowLeft' || k === 'Backspace') { e.preventDefault(); entryMove(-1); }
+            else if (k === 'ArrowRight') { e.preventDefault(); entryMove(1); }
+            else if (k === 'Escape') { state = 'board'; boardAt = performance.now(); highlightId = null; }
+            else if (k.length === 1 && CHARSET.includes(k.toUpperCase()) && !entry.sending) {
+                entry.chars[entry.slot] = CHARSET.indexOf(k.toUpperCase());
+                sfx.tick();
+                if (entry.slot < 2) entry.slot++;
+            }
+        }
+
+        // Tap targets, in canvas coordinates.
+        const SLOT_X = [W / 2 - 150, W / 2, W / 2 + 150];
+        function entryTap(e) {
+            const rect = cv.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * W / rect.width;
+            const y = (e.clientY - rect.top) * H / rect.height;
+            if (y > 540 && y < 620 && Math.abs(x - W / 2) < 170) { entry.slot = 2; entryConfirm(); return; }
+            for (let i = 0; i < 3; i++) {
+                if (Math.abs(x - SLOT_X[i]) < 65 && y > 220 && y < 480) {
+                    entry.slot = i;
+                    if (y < 300) entrySpin(1);
+                    else if (y > 400) entrySpin(-1);
+                    return;
+                }
+            }
+        }
+
+        function submitScore() {
+            const initials = entry.chars.map(i => CHARSET[i]).join('');
+            try { localStorage.setItem('markiss-ringside-initials', initials); } catch (e) {}
+            entry.sending = true;
+            entry.error = '';
+            fetch(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initials, points: results.points, grade: results.rank, accuracy: results.accuracy }),
+            })
+                .then(r => r.json().then(d => ({ ok: r.ok, status: r.status, d })))
+                .then(({ ok, status, d }) => {
+                    if (!ok) throw new Error(status === 429 ? 'Demasiados récords seguidos, esperá un rato' : 'No se pudo guardar');
+                    board = d.scores;
+                    highlightId = d.id;
+                    boardMsg = d.place > 10 ? `Quedaste en el puesto ${d.place}` : '';
+                    sfx.start();
+                    state = 'board';
+                    boardAt = performance.now();
+                })
+                .catch(err => { entry.sending = false; entry.error = err.message || 'No se pudo guardar'; });
+        }
+
+        function arcadeBackdrop(ms) {
+            g.fillStyle = '#0b0614';
+            g.fillRect(0, 0, W, H);
+            g.fillStyle = 'rgba(255,255,255,0.035)';
+            for (let y = 0; y < H; y += 4) g.fillRect(0, y, W, 2);     // scanlines
+        }
+
+        function drawEntry(ms) {
+            arcadeBackdrop(ms);
+            const blink = Math.floor(ms / 300) % 2 === 0;
+            text('¡NUEVO RECORD!', W / 2, 90, 40, blink ? '#ffd84a' : '#ff3b3b', { font: ARCADE });
+            text(`PUNTOS ${String(results.points).padStart(6, '0')}`, W / 2, 160, 24, '#fff', { font: ARCADE });
+
+            for (let i = 0; i < 3; i++) {
+                const x = SLOT_X[i], on = i === entry.slot;
+                text('▲', x, 262, 28, on ? '#ffd84a' : '#4a3a63', { font: ARCADE });
+                text(CHARSET[entry.chars[i]], x, 352, 84, on && blink && !entry.sending ? '#ffd84a' : '#fff', { font: ARCADE });
+                g.fillStyle = on ? '#ffd84a' : '#4a3a63';
+                g.fillRect(x - 48, 408, 96, 8);
+                text('▼', x, 450, 28, on ? '#ffd84a' : '#4a3a63', { font: ARCADE });
+            }
+
+            g.strokeStyle = '#ffd84a';
+            g.lineWidth = 4;
+            roundRect(W / 2 - 170, 548, 340, 64, 10);
+            g.stroke();
+            text(entry.sending ? '...' : entry.slot < 2 ? 'SIGUIENTE' : 'GUARDAR', W / 2, 582, 22, '#ffd84a', { font: ARCADE });
+
+            text('↑↓ letra   ·   ←→ mover   ·   ESPACIO confirmar   ·   o escribilas directo', W / 2, 660, 20, '#9f8fb8', { weight: 500 });
+            if (entry.error) text(entry.error, W / 2, 500, 16, '#ff5a5a', { font: ARCADE });
+        }
+
+        const GRADE_TAG = { perfect: 'PERF', superb: 'GENI', ok: ' OK ', try: 'TRY ' };
+        function drawBoard(ms) {
+            arcadeBackdrop(ms);
+            text('RINGSIDE ft. MARKISS', W / 2, 60, 22, '#ff3b3b', { font: ARCADE });
+            text('TOP 10', W / 2, 112, 44, '#ffd84a', { font: ARCADE });
+
+            if (!board) {
+                text(boardMsg || 'Cargando…', W / 2, 360, 20, '#fff', { font: ARCADE });
+            } else if (!board.length) {
+                text('¡Nadie todavía! Sé el primero.', W / 2, 360, 20, '#fff', { font: ARCADE });
+            } else {
+                const ordinals = ['1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH', '9TH', '10TH'];
+                const palette = ['#ffd84a', '#e8e8e8', '#ff9f43', '#7ee8fa', '#7ee8fa', '#7ee8fa', '#b69cff', '#b69cff', '#b69cff', '#b69cff'];
+                board.forEach((r, i) => {
+                    const y = 180 + i * 44;
+                    const mine = r.id === highlightId;
+                    if (mine && Math.floor(ms / 250) % 2 === 0) return;
+                    const c = mine ? '#fff' : palette[i];
+                    text(ordinals[i].padStart(4, ' '), 330, y, 22, c, { font: ARCADE, align: 'right' });
+                    text(r.initials, 420, y, 22, c, { font: ARCADE, align: 'left' });
+                    text(String(r.points).padStart(6, '0'), 800, y, 22, c, { font: ARCADE, align: 'right' });
+                    text(GRADE_TAG[r.grade] || '', 860, y, 16, c, { font: ARCADE, align: 'left' });
+                });
+            }
+            if (boardMsg && board) text(boardMsg, W / 2, 640, 16, '#fff', { font: ARCADE });
+            if (Math.floor(ms / 500) % 2 === 0) text('ESPACIO', W / 2, 685, 18, '#fff', { font: ARCADE });
+        }
+
+        // ---------------------------------------------------------------
+        // Input
+        // ---------------------------------------------------------------
+        let starting = false;
+        function press(perf) {
+            if (state === 'title') {
+                if (loaded >= TOTAL && !starting) {
+                    starting = true;
+                    ensureAudio().then(() => { sfx.start(); return startGame(); }).finally(() => { starting = false; });
+                }
+                return;
+            }
+            if (state === 'play') { judge(perf); return; }
+            if (state === 'results' && performance.now() - resultsAt > resultsReadyMs()) {
+                if (qualifies()) openEntry(); else { state = 'board'; boardAt = performance.now(); highlightId = null; }
+                return;
+            }
+            if (state === 'board' && performance.now() - boardAt > 600) { state = 'title'; loadBoard(); }
+        }
+
+        function saveOffset() {
+            try { localStorage.setItem('markiss-ringside-offset', String(offsetMs)); } catch (e) {}
+        }
+
+        window.addEventListener('keydown', e => {
+            if (state === 'entry') { entryKey(e); return; }
+            if (e.code === 'Space' || e.key === ' ') {
+                e.preventDefault();
+                if (!e.repeat) press(e.timeStamp || performance.now());
+            } else if (e.key === 'Escape' && state === 'play') {
+                quitToTitle();
+            } else if (state === 'title' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+                offsetMs = Math.max(-300, Math.min(300, offsetMs + (e.key === 'ArrowRight' ? 10 : -10)));
+                saveOffset();
+            }
         });
+        cv.addEventListener('pointerdown', e => {
+            e.preventDefault();
+            if (state === 'entry') { entryTap(e); return; }
+            press(e.timeStamp || performance.now());
+        });
+
+        // ---------------------------------------------------------------
+        // Loop
+        // ---------------------------------------------------------------
+        function frame(ms) {
+            if (state === 'loading' && loaded >= TOTAL) state = 'title';
+            update();
+            if (state === 'loading') drawLoading();
+            else if (state === 'title') drawTitle(ms);
+            else if (state === 'play') drawPlay();
+            else if (state === 'results') drawResults(ms);
+            else if (state === 'entry') drawEntry(ms);
+            else if (state === 'board') drawBoard(ms);
+            requestAnimationFrame(frame);
+        }
+        if (document.fonts && document.fonts.load) {
+            document.fonts.load('800 34px Rubik').catch(() => {});
+            document.fonts.load('20px "Press Start 2P"').catch(() => {});
+        }
+        // Test hook for automated play-throughs: ?debug
+        if (/[?&]debug\b/.test(location.search)) {
+            window.__ringside = {
+                get cues() { return cues; }, get state() { return state; }, get points() { return points; },
+                heard: () => heardTime(performance.now()) - offsetMs / 1000,
+            };
+        }
+        loadBoard();
+        requestAnimationFrame(frame);
+    })();
     </script>
 </body>
 </html>
