@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Markiss Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            overflow: hidden;
+        }
+
+        .image-container {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            animation: fadeIn 3s ease-out forwards, zoomIn 15s ease-out forwards, zoomBounce 8s ease-in-out 15s infinite;
+            transform-origin: top center;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        body.shaking .image-container {
+            animation: fadeIn 0s forwards, shake 0.25s linear infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(1); }
+            to { transform: scale(1.15); }
+        }
+
+        @keyframes zoomBounce {
+            0%, 100% { transform: scale(1.15); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%   { transform: scale(1.15) translate(0, 0); }
+            25%  { transform: scale(1.15) translate(-4px, 3px); }
+            50%  { transform: scale(1.15) translate(4px, -3px); }
+            75%  { transform: scale(1.15) translate(-3px, -4px); }
+            100% { transform: scale(1.15) translate(0, 0); }
+        }
+
+        .dialogue-box {
+            position: fixed;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(900px, calc(100% - 32px));
+            max-height: 40vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 24px 40px;
+            opacity: 0;
+            animation: fadeInDialogue 1s ease-out 2s forwards;
+            z-index: 10;
+        }
+
+        .dialogue-box::-webkit-scrollbar {
+            display: none;
+        }
+
+        @keyframes fadeInDialogue {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .speaker {
+            color: #f472b6;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .dialogue-text {
+            color: #fff;
+            font-size: 24px;
+            font-style: italic;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .choices {
+            position: fixed;
+            top: 42%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 32px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease-out;
+            z-index: 20;
+        }
+
+        .choices.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .choice {
+            width: 140px;
+            padding: 24px 0;
+            font-size: 48px;
+            font-weight: bold;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .choice-1 {
+            background: #2563eb;
+            box-shadow: 0 8px 32px rgba(37, 99, 235, 0.5);
+        }
+
+        .choice-2 {
+            background: #dc2626;
+            box-shadow: 0 8px 32px rgba(220, 38, 38, 0.5);
+        }
+
+        .choice:hover {
+            transform: translateY(-4px) scale(1.05);
+        }
+
+        @media (max-width: 600px) {
+            .dialogue-box { padding: 18px 20px; }
+            .dialogue-text { font-size: 19px; }
+            .choice { width: 110px; font-size: 40px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="image-container">
+        <img src="img/markiss.jpg" alt="" onerror="this.remove()">
+    </div>
+
+    <div class="choices" id="choices">
+        <button class="choice choice-1" data-choice="1">1</button>
+        <button class="choice choice-2" data-choice="2">2</button>
+    </div>
+
+    <div class="dialogue-box" id="box">
+        <p class="speaker">???</p>
+        <p class="dialogue-text" id="dialogue"></p>
+    </div>
+
+    <script>
+        const box = document.getElementById('box');
+        const dialogue = document.getElementById('dialogue');
+        const choices = document.getElementById('choices');
+
+        function type(text, speed) {
+            return new Promise(resolve => {
+                let i = 0;
+                (function step() {
+                    if (i >= text.length) return resolve();
+                    dialogue.textContent += text[i++];
+                    if (dialogue.textContent.length > 4000) dialogue.textContent = dialogue.textContent.slice(-2000);
+                    box.scrollTop = box.scrollHeight;
+                    setTimeout(step, speed);
+                })();
+            });
+        }
+
+        async function forever() {
+            let speed = 60;
+            await type('Puto', speed);
+            for (;;) {
+                await type(' puto', speed);
+                speed = Math.max(12, speed - 2);
+            }
+        }
+
+        setTimeout(async () => {
+            await type('¿1 o 2?', 70);
+            choices.classList.add('visible');
+        }, 3000);
+
+        choices.addEventListener('click', e => {
+            if (!e.target.dataset.choice) return;
+            choices.classList.remove('visible');
+            dialogue.textContent = '';
+            document.body.classList.add('shaking');
+            forever();
+        });
+    </script>
+</body>
+</html>
