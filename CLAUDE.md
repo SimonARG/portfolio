@@ -109,6 +109,14 @@ Each deploy re-clones the whole branch, ~55MB of it video. That's fine at this s
   - `portfolio.conf`: `location = /markiss-game/api/scores.php` → the harmless-pleasure PHP-FPM socket (pool unchanged), and `location ^~ /markiss-game/api/ { return 404; }` so migrations are never served. Pre-change backup: `/root/portfolio.conf.bak-20260928-markiss`.
 - **Test hook**: `?debug` exposes `window.__ringside` (cues, heard time, state) for automated play-throughs.
 
+## sonic-rally: a build artifact on `production` only
+
+`/sonic-rally/` is an unlisted (`noindex`) fan game, built from the private repo `SimonARG/sonic-rally`.
+Only its Vite build output lives here, and **only on `production`** (nothing on `main` or `gh-pages`).
+Don't hand-edit it: deploy with `scripts/deploy.sh` in that repo, which replaces the whole
+`sonic-rally/` folder through a worktree at `~/re/portfolio-prod` and pushes `production`. It serves no
+game data: players load their own ROM in the browser.
+
 ## DNS, TLS and Cloudflare
 
 The zone moved from Namecheap to **Cloudflare** on 2026-08-06. Apex and `www` are both **A records to `148.230.91.169`, proxied (orange cloud)**, so visitors hit Cloudflare's edge and Cloudflare fetches from this origin.
