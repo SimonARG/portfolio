@@ -27,7 +27,7 @@ Consequences to respect:
 - **Never overwrite `production` wholesale** (no force-push from `main`, no `git checkout main -- .`). It would drop every image, video and CV PDF, since `production`/`gh-pages` are the only place those binaries live.
 - Media and CVs are **only ever committed to `production`**. `.gitignore` on `main` excludes `imgs/`, `vids/`, `docs/`, `dist/`. Commits like `Update CV files` with no counterpart on `main` are expected, not drift.
 - **`gh-pages` is the rollback**, kept in sync with GitHub Pages settings and left untouched. If the VPS has to be abandoned, pointing DNS back at GitHub Pages restores the old site as-is. Don't repurpose or delete that branch.
-- Content parity is currently intact: all branches carry the same six projects (`mpi`, `mixtorrents`, `newtab`, `ambient`, `blog`, `portfolio`).
+- Content parity is currently intact: `main` and `production` carry the same nine projects (`recrivals`, `pointgeek`, `harmlesspleasure`, `mpi`, `mixtorrents`, `newtab`, `ambient`, `blog`, `portfolio`); `gh-pages`, the frozen rollback, still has the first six. The first three are private repos: their popups link to the public site (or to nothing), never to code, and their media shows public, logged-out pages only.
 
 ### Deploying a change
 
@@ -194,7 +194,7 @@ Two independent popup systems, both driven by toggling an `.active` class, both 
 2. A popup: `<div class="project-pu-container NAME-pu">` with a closer `<button class="btn close-project NAME-btn">`, a `<video class="pj-vid NAME-vid" loop muted><source src="vids/NAME.mp4">`, a tech list, a description in all three languages, and a GitHub source link.
 3. In `projects.js`: the popup const, the button `querySelectorAll`, the video const, a `forEach` click binding to `toggleProjectPopup`, and a `projectRollover` line inside the window click listener.
 4. Any project-specific styling under the `Projects body` / `Project popup` sections of `css/index.css`.
-5. The `imgs/` and `vids/` assets — committed **to `gh-pages` only**.
+5. The `imgs/` and `vids/` assets — committed **to `production` only** (landscape, about 1920x974, like the existing ones: the card and popup take their height from the media).
 
 Some existing `<source>` tags declare `type="video/webm"` while pointing at an `.mp4`; browsers sniff and play them anyway. Use `type="video/mp4"` for new ones.
 

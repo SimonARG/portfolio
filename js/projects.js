@@ -5,6 +5,9 @@ const ambient = document.querySelector('.ambient-pu');
 const mixtorrents = document.querySelector('.mixtorrents-pu');
 const mpi = document.querySelector('.mpi-pu');
 const newtab = document.querySelector('.newtab-pu');
+const recrivals = document.querySelector('.recrivals-pu');
+const pointgeek = document.querySelector('.pointgeek-pu');
+const harmlesspleasure = document.querySelector('.harmlesspleasure-pu');
 
 // Get projects buttons
 const btnBlog = document.querySelectorAll('.blog-btn');
@@ -13,6 +16,9 @@ const btnAmbient = document.querySelectorAll('.ambient-btn');
 const btnMixtorrents = document.querySelectorAll('.mixtorrents-btn');
 const btnMpi = document.querySelectorAll('.mpi-btn');
 const btnNewtab = document.querySelectorAll('.newtab-btn');
+const btnRecrivals = document.querySelectorAll('.recrivals-btn');
+const btnPointgeek = document.querySelectorAll('.pointgeek-btn');
+const btnHarmlesspleasure = document.querySelectorAll('.harmlesspleasure-btn');
 
 // Get project videos
 const portfolioVid = document.querySelector('.portfolio-vid');
@@ -21,6 +27,9 @@ const ambientVid = document.querySelector('.ambient-vid');
 const mixtorrentsVid = document.querySelector('.mixtorrents-vid');
 const mpiVid = document.querySelector('.mpi-vid');
 const newtabVid = document.querySelector('.newtab-vid');
+const recrivalsVid = document.querySelector('.recrivals-vid');
+const pointgeekVid = document.querySelector('.pointgeek-vid');
+const harmlesspleasureVid = document.querySelector('.harmlesspleasure-vid');
 
 // For the open and close buttons, open or close the project popup
 const toggleProjectPopup = (project, vid) => {
@@ -69,6 +78,24 @@ btnMpi.forEach(btn => {
   });
 });
 
+btnRecrivals.forEach(btn => {
+  btn.addEventListener('click', () => {
+    toggleProjectPopup(recrivals, recrivalsVid)
+  });
+});
+
+btnPointgeek.forEach(btn => {
+  btn.addEventListener('click', () => {
+    toggleProjectPopup(pointgeek, pointgeekVid)
+  });
+});
+
+btnHarmlesspleasure.forEach(btn => {
+  btn.addEventListener('click', () => {
+    toggleProjectPopup(harmlesspleasure, harmlesspleasureVid)
+  });
+});
+
 // Close any open popup on click of the window
 const projectRollover = (event, button, popupEl, popup, vid) => {
   if (!(event.target.closest(button)) && !(event.target.closest(popupEl))) {
@@ -91,4 +118,10 @@ window.addEventListener('click', function (event) {
   projectRollover(event, '.mpi-btn', '.mpi-pu', mpi, mpiVid);
 
   projectRollover(event, '.newtab-btn', '.newtab-pu', newtab, newtabVid);
+
+  projectRollover(event, '.recrivals-btn', '.recrivals-pu', recrivals, recrivalsVid);
+
+  projectRollover(event, '.pointgeek-btn', '.pointgeek-pu', pointgeek, pointgeekVid);
+
+  projectRollover(event, '.harmlesspleasure-btn', '.harmlesspleasure-pu', harmlesspleasure, harmlesspleasureVid);
 });
